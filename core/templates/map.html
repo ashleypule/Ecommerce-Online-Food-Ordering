@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+
+    .mapholder {
+        height: 100vh; 
+        width: 100%; 
+        display: flex;
+        justify-content: center;
+        align-items: center; 
+    }
+    
+    #map {
+        width: 1200px; 
+        height: 500px;
+        padding: 20px;
+    }
+    
+    
+    #ourtable3_wrapper{
+        width:98%;
+        margin-left: 1%;
+        margin-right: 1%;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .myTable{
+        font-size: 12px;
+        min-width: 400px;
+        overflow: hidden;
+        border-radius: 7px 7px 0 0;
+        box-shadow: 0 0 20px rgba(0, 0, 0, .15);
+    }
+    
+    .myTable th {
+        background-color: #2D323E;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .myTable td, .myTable th {
+        border: 0.01em solid #e3e2e2;
+    }
+    
+    .myTable tr:nth-child(even){background-color: #f9f8f8;}
+    
+    /* Formats the text*/ 
+    #ourtable3_filter,
+    #ourtable3_length,
+    #ourtable3_info,
+    #ourtable3_paginate{
+        font-size: 12px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    /* Formats the input fields*/ 
+    #ourtable3_filter input,
+    #ourtable3_length select{
+        border: 0.2px solid rgb(3, 154, 204);
+    }
+    
+    .pageholder,
+    form{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        border-radius: 3px;
+        padding: 5px 10px;
+    }
+    
+    .titleholder,
+    .linkholder{
+        display: flex;
+        margin-top: 10px;
+        width: 98%;
+        border-radius: 5px;
+    }
+    
+    .ourbutton{
+        margin-right: 10px;
+        height: 30px;
+        width: 100px;
+        margin-left: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        background-color: rgb(0, 0, 80);
+        color: white
+    }
+    
+    .ourbutton:hover{
+        margin-right: 10px;
+        background-color: rgb(142, 142, 142);
+        color: white
+    }
+    
+    .form1{
+        width: 30%;
+    }
+    
+    form{
+        width:100%;
+    }
+    
+    .titleholder{
+        display: flex;
+        justify-content: space-between;
+        background-color: #4267B2;
+        align-items: center;
+        height: 40px;
+    }
+    
+    .linkholder{
+        box-shadow: 0 0 20px rgba(0, 0, 0, .15);
+        flex-direction: column;
+    }
+    
+    .title{
+        color: white;
+        margin-left: 10px;
+        font-weight: bold;
+        font-size: 15px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .title2{
+        color: #333;
+        margin-left: 10px;
+        font-weight: bold;
+        font-size: 15px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .linkbox{
+        display: flex;
+        width:20%;
+        height: 50px;
+        justify-content: center;
+        text-align: center;
+        align-items: center;
+        border-radius: 5px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, .15);
+    }
+
+    .driver-details {
+    float: right; 
+    margin-top: 0px; 
+    width: 100%; 
+    background-color: #f9f9f9; 
+    padding: 20px; 
+    border-radius: 5px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+    align-items: center;
+}
+
+
+    </style>  
+<div class="pageholder">
+    <div class="titleholder"> 
+        <div class="title"> Google Maps to track your order </div> 
+    </div>
+
+    <div id="map"></div>
+    <p>{{ text }}</p>
+    <form id="locationForm">
+        <label for="origin">Enter Your Location:</label>
+        <input type="text" id="origin" name="origin" class="rounded-xl" value="{{ request.user.profile.address1 }}"><br>
+        
+        <input type="submit" value="Submit" class="rounded-xl bg-gray-400 px-6">
+    </form>
+
+    <br>
+ 
+    {% if selected_driver %}
+        <div class="driver-details card mb-3"> 
+            <div class="row g-0">
+                <div class="col-md-4 flex justify-start mt-3"> <!-- Align items to the left -->
+                    {% if selected_driver.image %}
+                    <img src="{{ selected_driver.image.url }}" alt="{{ selected_driver.name }}'s Image" style="max-width: 200px; max-height: 200px;">
+                    {% endif %}
+                </div>
+                <div class="col-md-8 flex justify-end"> <!-- Align items to the right -->
+                    <div class="card-body text-left ml-36"> <!-- Align text to the right -->
+                        <div id="etaDisplay" class="mb-4">
+                            <p>Estimated Time of Arrival: <span id="eta"></span></p>
+                        </div>
+                        <h3>Driver's Details</h3>
+                        <p>Name: {{ selected_driver.name }} {{ selected_driver.surname }}</p>
+                        <p>License Number: {{ selected_driver.license_number }}</p>
+                        <p>Car Registration/Numberplate: {{ selected_driver.car_registration }}</p>
+                        <p>Car Make: {{ selected_driver.car_make }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div id="arrivalNotification" class="hidden text-blue-600 font-semibold mt-4">
+        <p>The delivery has arrived!</p>
+    </div>
+
+</div>
+
+<script>
+    // WebSocket connection
+    const socket = new WebSocket('ws://yourdomain.com/ws/vehicle-location/');
+
+    // Event listener for WebSocket connection opened
+    socket.addEventListener('open', function (event) {
+        console.log('WebSocket connected');
+    });
+
+    // Event listener for WebSocket messages received
+    socket.addEventListener('message', function (event) {
+        console.log('Received message:', event.data);
+        // Handle received message (e.g., update vehicle location on the map)
+    });
+
+    // Event listener for WebSocket errors
+    socket.addEventListener('error', function (error) {
+        console.error('WebSocket error:', error);
+    });
+
+    // Event listener for WebSocket connection closed
+    socket.addEventListener('close', function (event) {
+        console.log('WebSocket closed');
+    });
+
+    var map;
+    var directionsService;
+    var directionsRenderer;
+    var deliveryMarker;
+    var etaDisplay = document.getElementById('eta'); 
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 12,
+            center: { lat: -25.4808, lng: 28.1036 } 
+        });
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+        
+        deliveryMarker = new google.maps.Marker({
+            map: map,
+            icon: {
+                path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                scale: 1.5, // Adjust the scale as needed
+                fillColor: 'red', // Fill color of the vehicle
+                fillOpacity: 1,
+                strokeColor: 'black', // Border color of the vehicle
+                strokeWeight: 1,
+                //rotation: 10
+                rotation: 90  // Rotate the vehicle as needed
+            },
+            title: 'Delivery Vehicle'
+        });
+    }
+    
+    function calculateRoute(destination) {
+        var origin = { lat: -25.5502, lng: 28.0897 }; // Set the vehicle's origin to the specified coordinates
+        var request = {
+            origin: origin,
+            destination: destination,
+            travelMode: 'DRIVING'
+        };
+        directionsService.route(request, function(result, status) {
+            if (status == 'OK') {
+                directionsRenderer.setDirections(result);
+                animateDeliveryMarker(result, destination); // Start animation from the destination entered by the user
+
+                var route = result.routes[0];
+                var legs = route.legs;
+                var duration = 0;
+                for (var i = 0; i < legs.length; i++) {
+                    duration += legs[i].duration.value;
+                }
+                var minutes = Math.round(duration / 60);
+                document.getElementById('eta').innerText = minutes + ' minutes';
+            } else {
+                window.alert('Directions request failed due to ' + status);
+            }
+        });
+    }
+
+    function animateDeliveryMarker(route, destination) {
+        var path = route.routes[0].overview_path;
+        var numSteps = path.length;
+
+        // Calculate total distance of the path
+        var totalDistance = 0;
+        for (var i = 1; i < numSteps; i++) {
+            totalDistance += google.maps.geometry.spherical.computeDistanceBetween(path[i - 1], path[i]);
+        }
+
+        // Set estimated time based on the speed (adjust as needed)
+        var speed = 100; // meters per second
+        var estimatedTime = totalDistance / speed;
+
+        // Start the animation
+        moveMarker(path, numSteps, estimatedTime);
+    }
+
+    function moveMarker(path, numSteps, estimatedTime) {
+        var startTime = Date.now(); // Time when animation starts
+        var duration = estimatedTime * 1000; // Convert estimated time to milliseconds
+
+        function animate() {
+            var currentTime = Date.now();
+            var elapsed = currentTime - startTime;
+            var progress = elapsed / duration;
+
+            if (progress > 1) {
+                progress = 1; // Ensure progress doesn't exceed 1
+            }
+
+            var index = Math.floor(progress * numSteps);
+            if (index >= numSteps) {
+                index = numSteps - 1; // Ensure index stays within bounds
+            }
+
+            var newPosition = path[index];
+            deliveryMarker.setPosition(newPosition); // Update delivery marker position
+
+            // Calculate rotation angle between consecutive points
+            if (index > 0) {
+                var previousPosition = path[index - 1];
+                var heading = google.maps.geometry.spherical.computeHeading(previousPosition, newPosition);
+                deliveryMarker.setIcon({
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 3,
+                    fillColor: 'red',
+                    fillOpacity: 1,
+                    strokeColor: 'black',
+                    strokeWeight: 1,
+                    rotation: heading // Rotate the marker according to the calculated heading
+                });
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animate); // Continue animating until progress reaches 1
+            }
+        }
+
+        animate(); // Start the animation
+    }
+
+    function handleSubmit(event) {
+        event.preventDefault();
+        var origin = document.getElementById('origin').value;
+        calculateRoute(origin);
+
+        // Show driver's details
+        document.getElementById('driverDetails').style.display = 'block';
+    }
+
+    document.getElementById('locationForm').addEventListener('submit', handleSubmit);
+
+    function showArrivalNotification() {
+        document.getElementById("arrivalNotification").classList.remove('hidden');
+    }
+
+    // Function to fetch updated location and animate marker
+    function trackDelivery() {
+        setInterval(async function() {
+
+            try {
+                const response = await fetch('/api/delivery-route');
+                const data = await response.json();
+
+                if (!data.routeCoordinates || !Array.isArray
+                (data.routeCoordinates)) {
+                    throw new Error('Invalid route data');
+                }
+
+                const routeCoordinates = data.routeCoordinates;
+
+                const updateFrequency = 1000; // milliseconds
+
+                for (let index = 0; index < routeCoordinates.length; index++) {
+                    const coordinate = routeCoordinates[index];
+                    await new Promise(resolve => setTimeout(resolve, index * updateFrequency));
+                    deliveryMarker.setPosition(coordinate);
+                }
+
+                showArrivalNotification();
+                
+
+            } catch (error) {
+                console.error('Error fetching or tracking delivery:', error);
+            }
+        }, 5000); // Adjust the interval as needed (in milliseconds)
+    }
+
+    // Call trackDelivery() once to start tracking delivery when the page loads
+    trackDelivery();
+    
+</script>
+
+
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZJCJVzkTMgNFmi6SXU3IVcRiUt6luZIk&callback=initMap"></script>
+<br>
+<br>
+{% endblock %}
+
